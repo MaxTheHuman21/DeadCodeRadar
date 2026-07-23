@@ -131,8 +131,20 @@ function mapKnipType(knipType: string): Finding["type"] | null {
 
 /**
  * Parsea el output JSON de knip y transforma a array de Finding.
- * El formato JSON de knip con --reporter json es un objeto con claves
- * por tipo de issue, cada una conteniendo un array de hallazgos.
+ * El formato JSON de knip con --reporter json es:
+ * {
+ *   "files": ["path/to/unused.ts", ...],
+ *   "issues": [
+ *     {
+ *       "file": "package.json",
+ *       "dependencies": [{"name": "lodash"}],
+ *       "devDependencies": [{"name": "ts-node"}],
+ *       "exports": [],
+ *       "types": [],
+ *       ...
+ *     }
+ *   ]
+ * }
  */
 function parseKnipOutput(jsonOutput: string): Finding[] {
   const findings: Finding[] = [];
@@ -144,48 +156,60 @@ function parseKnipOutput(jsonOutput: string): Finding[] {
     return findings;
   }
 
-  // Knip JSON reporter format: { files: [...], exports: [...], ... }
-  for (const [issueType, issues] of Object.entries(parsed)) {
-    const findingType = mapKnipType(issueType);
-    if (!findingType || !Array.isArray(issues)) continue;
-
-    for (const issue of issues) {
-      if (issueType === "files") {
-        // Files entries are strings (file paths) or objects with path
-        const filePath = typeof issue === "string" ? issue : issue?.path ?? issue?.file;
-        if (filePath) {
-          findings.push({
-            file: filePath,
-            line: null,
-            type: "unused-file",
-            name: path.basename(filePath),
-          });
-        }
-      } else if (issueType === "dependencies" || issueType === "devDependencies" ||
-                 issueType === "optionalPeerDependencies" || issueType === "unlisted" ||
-                 issueType === "binaries") {
-        // Dependency entries have name and possibly file location
-        const depName = issue?.name ?? issue;
-        const depFile = issue?.file ?? issue?.filePath ?? "package.json";
-        if (depName) {
-          findings.push({
-            file: typeof depFile === "string" ? depFile : "package.json",
-            line: issue?.line ?? issue?.col ?? null,
-            type: "unused-dependency",
-            name: typeof depName === "string" ? depName : String(depName),
-          });
-        }
-      } else {
-        // Export-type entries: have name, file/path, line/pos
-        const symbolName = issue?.name ?? issue?.symbol ?? "unknown";
-        const filePath = issue?.file ?? issue?.path ?? issue?.filePath ?? "unknown";
-        const line = issue?.line ?? issue?.row ?? issue?.pos ?? null;
+  // 1. Archivos no usados: parsed.files es un array de strings en primer nivel
+  if (Array.isArray(parsed.files)) {
+    for (const entry of parsed.files) {
+      const filePath = typeof entry === "string" ? entry : (entry as any)?.path ?? (entry as any)?.file;
+      if (filePath) {
         findings.push({
-          file: typeof filePath === "string" ? filePath : "unknown",
-          line: typeof line === "number" ? line : null,
-          type: findingType,
-          name: typeof symbolName === "string" ? symbolName : String(symbolName),
+          file: filePath,
+          line: null,
+          type: "unused-file",
+          name: path.basename(filePath),
         });
+      }
+    }
+  }
+
+  // 2. Issues anidados: parsed.issues es un array de objetos per-file
+  if (Array.isArray(parsed.issues)) {
+    const depKeys = ["dependencies", "devDependencies", "optionalPeerDependencies", "unlisted", "binaries"];
+    const exportKeys = ["exports", "types", "nsExports", "nsTypes", "classMembers", "enumMembers", "duplicates"];
+
+    for (const issue of parsed.issues as any[]) {
+      const issueFile: string = issue?.file ?? "unknown";
+
+      // Dependencias → type: "unused-dependency"
+      for (const depKey of depKeys) {
+        const deps = issue?.[depKey];
+        if (!Array.isArray(deps)) continue;
+        for (const dep of deps) {
+          const depName = typeof dep === "string" ? dep : dep?.name;
+          if (depName) {
+            findings.push({
+              file: "package.json",
+              line: null,
+              type: "unused-dependency",
+              name: typeof depName === "string" ? depName : String(depName),
+            });
+          }
+        }
+      }
+
+      // Exports / types → type: "unused-export"
+      for (const exportKey of exportKeys) {
+        const exports = issue?.[exportKey];
+        if (!Array.isArray(exports)) continue;
+        for (const exp of exports) {
+          const symbolName = exp?.name ?? "unknown";
+          const line = typeof exp?.line === "number" ? exp.line : null;
+          findings.push({
+            file: issueFile,
+            line,
+            type: "unused-export",
+            name: typeof symbolName === "string" ? symbolName : String(symbolName),
+          });
+        }
       }
     }
   }

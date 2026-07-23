@@ -10,11 +10,37 @@ import { execSync } from "child_process";
 
 const mockedExecSync = vi.mocked(execSync);
 
-// Sample knip JSON output
+// Sample knip JSON output — uses the REAL knip --reporter json format
 const sampleKnipOutput = JSON.stringify({
   files: ["src/unused-file.ts"],
-  exports: [{ file: "src/utils.ts", name: "helperFn", line: 10 }],
-  dependencies: [{ name: "lodash", file: "package.json" }],
+  issues: [
+    {
+      file: "package.json",
+      dependencies: [{ name: "lodash" }],
+      devDependencies: [],
+      optionalPeerDependencies: [],
+      unlisted: [],
+      binaries: [],
+      unresolved: [],
+      exports: [],
+      types: [],
+      enumMembers: {},
+      duplicates: [],
+    },
+    {
+      file: "src/utils.ts",
+      dependencies: [],
+      devDependencies: [],
+      optionalPeerDependencies: [],
+      unlisted: [],
+      binaries: [],
+      unresolved: [],
+      exports: [{ name: "helperFn", line: 10, col: 14, pos: 200 }],
+      types: [],
+      enumMembers: {},
+      duplicates: [],
+    },
+  ],
 });
 
 // We need to control require.resolve to simulate binary resolution.
@@ -223,6 +249,114 @@ describe("analyzeDeadCode", () => {
       const { ANALYSIS_BUDGET_MS, KNIP_TIMEOUT_MS } = await import("../../lambda/analyzer");
       expect(ANALYSIS_BUDGET_MS).toBe(180_000);
       expect(KNIP_TIMEOUT_MS).toBe(120_000);
+    });
+  });
+
+  describe("Real knip JSON format parsing", () => {
+    it("parses actual knip --reporter json output with nested issues containing dependencies and exports", async () => {
+      // This mirrors the REAL output from `npx knip --reporter json`
+      const realKnipOutput = JSON.stringify({
+        files: ["bin/app.ts", "lambda/utils/legacyDateFormatter.ts"],
+        issues: [
+          {
+            file: "package.json",
+            dependencies: [{ name: "aws-cdk-lib" }, { name: "constructs" }, { name: "lodash" }],
+            devDependencies: [{ name: "ts-node" }],
+            optionalPeerDependencies: [],
+            unlisted: [],
+            binaries: [],
+            unresolved: [],
+            exports: [],
+            types: [],
+            enumMembers: {},
+            duplicates: [],
+          },
+          {
+            file: "lambda/enricher.ts",
+            dependencies: [],
+            devDependencies: [],
+            optionalPeerDependencies: [],
+            unlisted: [],
+            binaries: [],
+            unresolved: [],
+            exports: [
+              { name: "MAX_CONTEXT_CHARS", line: 43, col: 14, pos: 1544 },
+              { name: "buildPromptMessages", line: 51, col: 17, pos: 1822 },
+            ],
+            types: [
+              { name: "FindingWithContext", line: 36, col: 18, pos: 1377 },
+            ],
+            enumMembers: {},
+            duplicates: [],
+          },
+          {
+            file: "lambda/downloader.ts",
+            dependencies: [],
+            devDependencies: [],
+            optionalPeerDependencies: [],
+            unlisted: [{ name: "@octokit/request-error" }],
+            binaries: [],
+            unresolved: [],
+            exports: [],
+            types: [],
+            enumMembers: {},
+            duplicates: [],
+          },
+        ],
+      });
+
+      const error = Object.assign(new Error("Command failed"), {
+        stdout: realKnipOutput,
+        stderr: "",
+        status: 1,
+        signal: null,
+        killed: false,
+      });
+      mockedExecSync.mockImplementation(() => {
+        throw error;
+      });
+
+      const { analyzeDeadCode } = await import("../../lambda/analyzer");
+      const result = await analyzeDeadCode("/tmp/test-repo");
+
+      expect(result.engineUsed).toBe("knip");
+
+      // Verify unused files from top-level "files" array
+      const unusedFiles = result.findings.filter((f) => f.type === "unused-file");
+      expect(unusedFiles.length).toBe(2);
+      expect(unusedFiles.map((f) => f.file)).toContain("bin/app.ts");
+      expect(unusedFiles.map((f) => f.file)).toContain("lambda/utils/legacyDateFormatter.ts");
+
+      // Verify unused dependencies from issues[0].dependencies
+      const unusedDeps = result.findings.filter((f) => f.type === "unused-dependency");
+      expect(unusedDeps.length).toBe(5); // 3 deps + 1 devDep + 1 unlisted
+      const depNames = unusedDeps.map((f) => f.name);
+      expect(depNames).toContain("aws-cdk-lib");
+      expect(depNames).toContain("constructs");
+      expect(depNames).toContain("lodash");
+      expect(depNames).toContain("ts-node");
+      expect(depNames).toContain("@octokit/request-error");
+      // All dep findings should reference package.json
+      for (const dep of unusedDeps) {
+        expect(dep.file).toBe("package.json");
+      }
+
+      // Verify unused exports from issues[1].exports and issues[1].types
+      const unusedExports = result.findings.filter((f) => f.type === "unused-export");
+      expect(unusedExports.length).toBe(3); // 2 exports + 1 type
+      const exportNames = unusedExports.map((f) => f.name);
+      expect(exportNames).toContain("MAX_CONTEXT_CHARS");
+      expect(exportNames).toContain("buildPromptMessages");
+      expect(exportNames).toContain("FindingWithContext");
+
+      // Verify export findings reference the correct file
+      const maxContextFinding = unusedExports.find((f) => f.name === "MAX_CONTEXT_CHARS");
+      expect(maxContextFinding!.file).toBe("lambda/enricher.ts");
+      expect(maxContextFinding!.line).toBe(43);
+
+      const typeFinding = unusedExports.find((f) => f.name === "FindingWithContext");
+      expect(typeFinding!.file).toBe("lambda/enricher.ts");
+      expect(typeFinding!.line).toBe(36);
     });
   });
 });

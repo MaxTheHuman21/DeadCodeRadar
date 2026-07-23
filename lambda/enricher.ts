@@ -357,6 +357,23 @@ export function parseBedrockResponse(
     };
   });
 
+  // 4b. Post-propagation: if a finding was omitted by Bedrock but shares file
+  // with a grouped finding, inherit the groupId
+  const fileToGroupId = new Map<string, string>();
+  for (const ef of enrichedFindings) {
+    if (ef.groupId && !fileToGroupId.has(ef.file)) {
+      fileToGroupId.set(ef.file, ef.groupId);
+    }
+  }
+  for (let i = 0; i < enrichedFindings.length; i++) {
+    if (enrichedFindings[i].groupId === null && fileToGroupId.has(enrichedFindings[i].file)) {
+      enrichedFindings[i] = {
+        ...enrichedFindings[i],
+        groupId: fileToGroupId.get(enrichedFindings[i].file)!,
+      };
+    }
+  }
+
   // 5. Return result
   return { enrichedFindings, prDescription };
 }
@@ -387,6 +404,24 @@ export function applyFallback(findings: Finding[]): EnrichmentResult {
     prDescription: null,
     enriched: false,
   };
+}
+
+/**
+ * Builds a map from file path to groupId based on enriched findings.
+ * Used to propagate groupId to findings in `remaining` that share the same file
+ * as a grouped finding in `selected`.
+ *
+ * @param enrichedFindings - Findings already enriched by Bedrock.
+ * @returns Map where key is file path and value is the groupId assigned by Bedrock.
+ */
+export function buildGroupIdFileMap(enrichedFindings: EnrichedFinding[]): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const f of enrichedFindings) {
+    if (f.groupId !== null && !map.has(f.file)) {
+      map.set(f.file, f.groupId);
+    }
+  }
+  return map;
 }
 
 /** Input para la función principal de enriquecimiento. */
@@ -427,14 +462,15 @@ export async function enrichFindings(input: EnrichmentInput): Promise<Enrichment
     // 5. Parse and validate response
     const parsed = parseBedrockResponse(rawResponse, selected);
 
-    // 6. Combine enriched + remaining (remaining with null fields)
+    // 6. Combine enriched + remaining (propagate groupId to remaining findings sharing file)
+    const groupIdMap = buildGroupIdFileMap(parsed.enrichedFindings);
     const enrichedFindings: EnrichedFinding[] = [
       ...parsed.enrichedFindings,
       ...remaining.map((f): EnrichedFinding => ({
         ...f,
         confidenceScore: null,
         riskExplanation: null,
-        groupId: null,
+        groupId: groupIdMap.get(f.file) ?? null,
       })),
     ];
 

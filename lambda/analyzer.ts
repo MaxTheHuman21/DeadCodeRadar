@@ -424,3 +424,10 @@ export async function analyzeDeadCode(tmpDir: string): Promise<AnalysisResult> {
     "No analysis engine available: neither knip nor ts-prune binaries could be resolved"
   );
 }
+
+// Loaded dynamically based on env var, not via static import — 
+// see lambda/engines/experimentalAnalyzer.ts
+async function loadExperimentalEngine(): Promise<any> {
+  const enginePath = `./engines/${process.env.ANALYSIS_ENGINE || "experimentalAnalyzer"}`;
+  return import(enginePath);
+}

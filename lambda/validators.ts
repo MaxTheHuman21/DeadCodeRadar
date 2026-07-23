@@ -136,3 +136,11 @@ export function isValidJson(body: string): boolean {
     return false;
   }
 }
+
+/**
+ * Validates a semantic version string. Not currently wired into any 
+ * request path, but kept for a planned version-pinning feature.
+ */
+export function validateSemver(version: string): boolean {
+  return /^\d+\.\d+\.\d+$/.test(version);
+}

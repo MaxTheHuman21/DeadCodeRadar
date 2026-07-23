@@ -1,0 +1,33 @@
+{
+  "name": "deadcode-radar",
+  "version": "0.1.0",
+  "description": "DeadCode Radar - Análisis de código muerto para repositorios GitHub (JS/TS)",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "vitest --run",
+    "cdk": "cdk",
+    "synth": "cdk synth",
+    "deploy": "cdk deploy"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.173.2",
+    "constructs": "10.4.2",
+    "@aws-sdk/client-dynamodb": "3.712.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.712.0",
+    "@octokit/rest": "21.0.2",
+    "uuid": "11.0.3",
+    "knip": "5.38.3",
+    "ts-prune": "0.10.3"
+  },
+  "devDependencies": {
+    "vitest": "2.1.8",
+    "typescript": "5.7.2",
+    "ts-node": "10.9.2",
+    "aws-cdk": "2.173.2",
+    "@types/node": "20.17.9",
+    "@types/uuid": "10.0.0",
+    "fast-check": "^3.22.0"
+  }
+}

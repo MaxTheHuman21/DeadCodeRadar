@@ -30,3 +30,4 @@ Thumbs.db
 
 # Kiro (si genera artefactos locales de sesión que no quieras versionar)
 .kiro/cache/
+.zip

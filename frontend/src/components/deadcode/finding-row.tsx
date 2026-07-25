@@ -1,15 +1,8 @@
 import { useState } from 'react'
 import { ChevronDown, Layers, Sparkles, ShieldQuestion } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TYPE_LABELS, type ConfidenceLevel, type Finding } from './data'
-
-const TIER_STYLES: Record<ConfidenceLevel, string> = {
-  high: 'bg-success/10 text-success',
-  medium: 'bg-warning/15 text-warning-foreground',
-  low: 'bg-muted text-muted-foreground',
-}
-
-const NULL_STYLE = 'bg-muted text-muted-foreground'
+import { TYPE_LABELS, type Finding } from './data'
+import { SignalBars } from './signal-bars'
 
 export function FindingRow({
   finding,
@@ -21,7 +14,6 @@ export function FindingRow({
   enriched: boolean
 }) {
   const [open, setOpen] = useState(false)
-  const confidence = finding.confidenceScore
 
   return (
     <div className="overflow-hidden">
@@ -48,14 +40,7 @@ export function FindingRow({
           {TYPE_LABELS[finding.type]}
         </span>
 
-        <span
-          className={cn(
-            'shrink-0 rounded-md px-2 py-0.5 text-xs font-semibold capitalize',
-            confidence ? TIER_STYLES[confidence] : NULL_STYLE,
-          )}
-        >
-          {confidence ?? 'N/A'}
-        </span>
+        <SignalBars confidence={finding.confidenceScore} />
       </button>
 
       {open && (

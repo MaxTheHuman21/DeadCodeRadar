@@ -3,6 +3,7 @@ import { AlertCircle, ArrowLeft, FileSearch, RefreshCw, Search, Sparkles } from 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { MaskIcon } from './mask-icon'
+import { RadarSweep } from './radar-sweep'
 import {
   LOADING_STEPS,
   confidenceSortValue,
@@ -24,6 +25,7 @@ const FETCH_TIMEOUT_MS = 5 * 60 * 1000
 
 export function Testing() {
   const [url, setUrl] = useState('')
+  const [githubToken, setGithubToken] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [step, setStep] = useState(0)
   const [result, setResult] = useState<AnalysisResult | null>(null)
@@ -46,6 +48,7 @@ export function Testing() {
     setResult(null)
     setErrorMessage('')
     setStep(0)
+    setGithubToken('')
   }
 
   async function analyze() {
@@ -67,13 +70,12 @@ export function Testing() {
     setErrorMessage('')
 
     // Simulate progress steps with timeouts while waiting for the real response
-    const stepDuration = 8000 // ~8 seconds per step to spread across potentially long waits
+    const stepDuration = 8000
     LOADING_STEPS.forEach((_, i) => {
       const t = setTimeout(() => setStep(i), i * stepDuration)
       timers.current.push(t)
     })
 
-    // After all steps shown, keep cycling the last step
     const loopTimer = setTimeout(() => {
       setStep(LOADING_STEPS.length - 1)
     }, LOADING_STEPS.length * stepDuration)
@@ -83,14 +85,19 @@ export function Testing() {
       const controller = new AbortController()
       abortRef.current = controller
 
+      const body: Record<string, string> = { repoUrl: value }
+      const trimmedToken = githubToken.trim()
+      if (trimmedToken.length > 0) {
+        body.userGithubToken = trimmedToken
+      }
+
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repoUrl: value }),
+        body: JSON.stringify(body),
         signal: controller.signal,
       })
 
-      // Clear progress timers once we get a response
       timers.current.forEach(clearTimeout)
       timers.current = []
 
@@ -111,7 +118,6 @@ export function Testing() {
         throw new Error(data.error || 'The analysis failed. Please try again with a different repository.')
       }
 
-      // Map the API response to our AnalysisResult type
       const analysisResult: AnalysisResult = {
         jobId: data.jobId,
         status: data.status,
@@ -161,7 +167,7 @@ export function Testing() {
   return (
     <div className="mx-auto max-w-3xl px-5 pt-14 pb-24">
       <div className="text-center">
-        <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+        <h1 className="text-balance font-display text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
           Analyze a repository
         </h1>
         <p className="mx-auto mt-3 max-w-md text-pretty text-sm leading-relaxed text-muted-foreground">
@@ -208,6 +214,33 @@ export function Testing() {
             </Button>
           </div>
 
+          <details className="mt-4 text-sm">
+            <summary className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+              Add your GitHub token to enable PR creation (optional)
+            </summary>
+            <div className="mt-3 space-y-2">
+              <p className="text-xs text-muted-foreground">
+                Providing a token with <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">repo</code> scope enables creating a PR that removes dead code.{' '}
+                <a
+                  href="https://github.com/settings/tokens/new?scopes=repo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline underline-offset-2 hover:text-primary/80"
+                >
+                  Create a token →
+                </a>
+              </p>
+              <input
+                type="password"
+                value={githubToken}
+                onChange={(e) => setGithubToken(e.target.value)}
+                placeholder="ghp_xxxxxxxxxxxx"
+                disabled={status === 'loading'}
+                className="h-9 w-full rounded-lg border border-input bg-card px-3 font-mono text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/30 disabled:opacity-60"
+              />
+            </div>
+          </details>
+
           {status === 'idle' && (
             <button
               type="button"
@@ -238,7 +271,7 @@ export function Testing() {
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <FileSearch className="h-6 w-6" />
           </span>
-          <h3 className="mt-4 text-base font-semibold text-foreground">No dead code found</h3>
+          <h3 className="mt-4 font-display text-base font-semibold text-foreground">No dead code found</h3>
           <p className="mt-2 max-w-sm text-pretty text-sm leading-relaxed text-muted-foreground">
             We analyzed the repository but didn&apos;t find any dead code findings. The codebase looks clean!
           </p>
@@ -251,7 +284,7 @@ export function Testing() {
 
       {/* Results */}
       {status === 'done' && result && (
-        <Results result={result} onReset={reset} />
+        <Results result={result} onReset={reset} githubToken={githubToken} />
       )}
     </div>
   )
@@ -261,33 +294,36 @@ export function Testing() {
 
 function LoadingState({ step }: { step: number }) {
   return (
-    <div className="mt-10 flex flex-col items-center gap-6 rounded-2xl border border-border bg-card py-14 shadow-sm">
-      <span className="relative flex h-14 w-14 items-center justify-center">
-        <span className="absolute inset-0 animate-ping rounded-full bg-primary/20" />
-        <span className="absolute inset-2 animate-pulse rounded-full bg-primary/30" />
-        <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
-          <Sparkles className="h-3.5 w-3.5" />
+    <div className="relative mt-10 flex flex-col items-center gap-6 overflow-hidden rounded-2xl border border-border bg-card py-14 shadow-sm">
+      <RadarSweep className="opacity-60" />
+      <div className="relative z-10 flex flex-col items-center gap-6">
+        <span className="relative flex h-14 w-14 items-center justify-center">
+          <span className="absolute inset-0 animate-ping rounded-full bg-primary/20" />
+          <span className="absolute inset-2 animate-pulse rounded-full bg-primary/30" />
+          <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Sparkles className="h-3.5 w-3.5" />
+          </span>
         </span>
-      </span>
-      <div className="h-5 text-center">
-        <p className="text-sm font-medium text-foreground transition-all">
-          {LOADING_STEPS[step]}
+        <div className="h-5 text-center">
+          <p className="font-mono text-sm font-medium text-foreground transition-all">
+            {LOADING_STEPS[step]}
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {LOADING_STEPS.map((_, i) => (
+            <span
+              key={i}
+              className={cn(
+                'h-1.5 rounded-full transition-all',
+                i <= step ? 'w-6 bg-primary' : 'w-1.5 bg-border',
+              )}
+            />
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          This may take a few minutes for large repositories...
         </p>
       </div>
-      <div className="flex items-center gap-1.5">
-        {LOADING_STEPS.map((_, i) => (
-          <span
-            key={i}
-            className={cn(
-              'h-1.5 rounded-full transition-all',
-              i <= step ? 'w-6 bg-primary' : 'w-1.5 bg-border',
-            )}
-          />
-        ))}
-      </div>
-      <p className="text-xs text-muted-foreground">
-        This may take a few minutes for large repositories...
-      </p>
     </div>
   )
 }
@@ -306,7 +342,7 @@ function ErrorPanel({
       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
         <AlertCircle className="h-6 w-6" />
       </span>
-      <h3 className="mt-4 text-base font-semibold text-foreground">Something went wrong</h3>
+      <h3 className="mt-4 font-display text-base font-semibold text-foreground">Something went wrong</h3>
       <p className="mt-2 max-w-sm text-pretty text-sm leading-relaxed text-muted-foreground">
         {message}
       </p>
@@ -320,7 +356,7 @@ function ErrorPanel({
 
 /* ─── Results ─────────────────────────────────────────── */
 
-function Results({ result, onReset }: { result: AnalysisResult; onReset: () => void }) {
+function Results({ result, onReset, githubToken }: { result: AnalysisResult; onReset: () => void; githubToken: string }) {
   const groupSizes = countGroups(result.findings)
 
   return (
@@ -353,13 +389,20 @@ function Results({ result, onReset }: { result: AnalysisResult; onReset: () => v
       </div>
 
       {/* PR description */}
-      {result.prDescription && <PrCard pr={result.prDescription} />}
+      {result.prDescription && (
+        <PrCard
+          pr={result.prDescription}
+          githubToken={githubToken}
+          jobId={result.jobId}
+          apiUrl={API_URL}
+        />
+      )}
 
       {/* Findings list */}
       <div>
         <div className="mb-3 flex items-center justify-between px-1">
-          <h3 className="text-sm font-semibold text-foreground">
-            Findings ({result.findings.length})
+          <h3 className="font-display text-sm font-semibold text-foreground">
+            Findings (<span className="font-mono">{result.findings.length}</span>)
           </h3>
           <span className="font-mono text-xs text-muted-foreground">
             sorted by confidence
@@ -387,7 +430,7 @@ function Results({ result, onReset }: { result: AnalysisResult; onReset: () => v
 function Stat({ value, label }: { value: string | number; label: string }) {
   return (
     <div>
-      <div className="text-2xl font-semibold tracking-tight text-foreground">{value}</div>
+      <div className="font-mono text-2xl font-semibold tracking-tight text-foreground">{value}</div>
       <div className="text-xs text-muted-foreground">{label}</div>
     </div>
   )

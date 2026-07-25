@@ -1,6 +1,7 @@
 import { ArrowRight, ClipboardList, Link2, ScanSearch, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MaskIcon } from './mask-icon'
+import { RadarSweep } from './radar-sweep'
 
 const STEPS = [
   {
@@ -24,47 +25,50 @@ export function Landing({ onTryIt }: { onTryIt: () => void }) {
   return (
     <div className="mx-auto max-w-5xl px-5">
       {/* Hero */}
-      <section className="flex flex-col items-center pt-20 pb-16 text-center md:pt-28">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-          Static analysis, sharpened by AI
-        </div>
+      <section className="relative flex flex-col items-center pt-20 pb-16 text-center md:pt-28">
+        <RadarSweep />
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            Static analysis, sharpened by AI
+          </div>
 
-        <h1 className="max-w-3xl text-balance text-4xl font-semibold leading-[1.1] tracking-tight text-foreground md:text-6xl">
-          Find dead code in your repo before it finds you
-        </h1>
+          <h1 className="max-w-3xl text-balance font-display text-4xl font-semibold leading-[1.1] tracking-tight text-foreground md:text-6xl">
+            Find dead code in your repo before it finds you
+          </h1>
 
-        <p className="mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground md:text-lg">
-          DeadCode Radar scans your GitHub repository for unused files, exports, and
-          dependencies — then explains what&apos;s safe to remove and why.
-        </p>
+          <p className="mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground md:text-lg">
+            DeadCode Radar scans your GitHub repository for unused files, exports, and
+            dependencies — then explains what&apos;s safe to remove and why.
+          </p>
 
-        <div className="mt-8 flex flex-col items-center gap-4">
-          <Button size="lg" onClick={onTryIt} className="rounded-full px-6 text-sm">
-            Try it now
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <Button size="lg" onClick={onTryIt} className="rounded-full px-6 text-sm">
+              Try it now
+              <ArrowRight className="h-4 w-4" />
+            </Button>
 
-          {/* Built with badge */}
-          <div className="mt-2 inline-flex items-center gap-2.5 rounded-full border border-border bg-card px-3.5 py-2 text-muted-foreground">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">
-              Powered by
-            </span>
-            <MaskIcon src="/logos/aws.svg" label="AWS" className="h-4 w-6 text-foreground/70" />
-            <span className="text-border">·</span>
-            <MaskIcon src="/logos/kiro.svg" label="Kiro" className="h-4 w-4 text-foreground/70" />
-            <span className="text-border">·</span>
-            <MaskIcon src="/logos/claude.svg" label="Claude" className="h-4 w-4 text-foreground/70" />
-            <span className="text-[11px] font-medium text-muted-foreground/70">
-              AWS · Kiro · Claude
-            </span>
+            {/* Built with badge */}
+            <div className="mt-2 inline-flex items-center gap-2.5 rounded-full border border-border bg-card px-3.5 py-2 text-muted-foreground">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">
+                Powered by
+              </span>
+              <MaskIcon src="/logos/aws.svg" label="AWS" className="h-4 w-6 text-foreground/70" />
+              <span className="text-border">·</span>
+              <MaskIcon src="/logos/kiro.svg" label="Kiro" className="h-4 w-4 text-foreground/70" />
+              <span className="text-border">·</span>
+              <MaskIcon src="/logos/claude.svg" label="Claude" className="h-4 w-4 text-foreground/70" />
+              <span className="text-[11px] font-medium text-muted-foreground/70">
+                AWS · Kiro · Claude
+              </span>
+            </div>
           </div>
         </div>
       </section>
 
       {/* How it works */}
       <section className="border-t border-border py-16">
-        <h2 className="text-center text-sm font-semibold uppercase tracking-wide text-primary">
+        <h2 className="text-center font-display text-sm font-semibold uppercase tracking-wide text-primary">
           How it works
         </h2>
         <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -81,7 +85,7 @@ export function Landing({ onTryIt }: { onTryIt: () => void }) {
                   Step {i + 1}
                 </span>
               </div>
-              <h3 className="mt-4 text-base font-semibold text-foreground">{step.title}</h3>
+              <h3 className="mt-4 font-display text-base font-semibold text-foreground">{step.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
             </div>
           ))}
@@ -96,7 +100,7 @@ export function Landing({ onTryIt }: { onTryIt: () => void }) {
               <Sparkles className="h-3.5 w-3.5" />
               Why the AI matters
             </div>
-            <h2 className="mt-5 text-balance text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+            <h2 className="mt-5 text-balance font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
               It doesn&apos;t just flag dead code. It tells you why.
             </h2>
             <p className="mt-4 text-pretty text-sm leading-relaxed text-muted-foreground md:text-base">
@@ -110,7 +114,7 @@ export function Landing({ onTryIt }: { onTryIt: () => void }) {
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <code className="font-mono text-xs text-muted-foreground">app/api/webhook/route.ts</code>
-              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+              <span className="rounded-full bg-muted px-2.5 py-0.5 font-mono text-xs font-medium text-muted-foreground">
                 low · 0.31
               </span>
             </div>
@@ -129,7 +133,7 @@ export function Landing({ onTryIt }: { onTryIt: () => void }) {
       {/* By devs for devs */}
       <section className="border-t border-border py-16">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-balance text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+          <h2 className="text-balance font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
             By developers, for developers
           </h2>
           <p className="mt-4 text-pretty text-sm leading-relaxed text-muted-foreground md:text-base">

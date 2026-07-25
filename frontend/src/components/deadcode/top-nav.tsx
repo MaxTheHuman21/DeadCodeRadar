@@ -26,7 +26,7 @@ export function TopNav({
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Radar className="h-[18px] w-[18px]" />
           </span>
-          <span className="text-[15px] font-semibold tracking-tight">DeadCode Radar</span>
+          <span className="font-display text-[15px] font-semibold tracking-tight">DeadCode Radar</span>
         </button>
 
         <nav className="flex items-center gap-1 rounded-full border border-border bg-card p-1">

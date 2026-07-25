@@ -64,6 +64,7 @@ export interface DownloaderConfig {
 /** Evento recibido por la Lambda Function URL. */
 export interface LambdaEvent {
   requestContext: { http: { method: string } };
+  rawPath?: string;
   body?: string;
   queryStringParameters?: Record<string, string>;
 }

@@ -1,7 +1,7 @@
 /**
  * Handler principal de DeadCode Radar.
  * Punto de entrada de la Lambda Function URL.
- * Rutea por método HTTP: POST → análisis, GET → consulta, otro → 405.
+ * Rutea por rawPath: "/pr" → creación de PR, otros → análisis/consulta por método HTTP.
  */
 
 import { rm } from "fs/promises";
@@ -13,6 +13,10 @@ import { downloadRepo } from "./downloader";
 import { analyzeDeadCode } from "./analyzer";
 import { enrichFindings } from "./enricher";
 import { saveResult, getResult } from "./persistence";
+import { resolveToken, validateUserToken } from "./utils/tokenResolver";
+import { createSafeLogger } from "./utils/redactor";
+
+import { handlePrCreation } from "./prHandler";
 
 /**
  * Crea una respuesta HTTP estándar con Content-Type: application/json.
@@ -39,7 +43,19 @@ async function handlePost(event: LambdaEvent): Promise<{ response: LambdaRespons
   }
 
   const parsed = JSON.parse(event.body);
-  const { repoUrl } = parsed;
+  const { repoUrl, userGithubToken } = parsed;
+
+  // Validar userGithubToken si está presente
+  const tokenValidationError = validateUserToken(userGithubToken);
+  if (tokenValidationError) {
+    throw new AppError(
+      ErrorType.INVALID_INPUT,
+      tokenValidationError
+    );
+  }
+
+  // Create safe logger to prevent token leakage
+  const logger = createSafeLogger(userGithubToken);
 
   // Validar repoUrl
   if (!repoUrl) {
@@ -60,17 +76,20 @@ async function handlePost(event: LambdaEvent): Promise<{ response: LambdaRespons
   // Generar jobId único
   const jobId = uuidv4();
 
-  // Verificar presencia de GITHUB_TOKEN antes de iniciar el pipeline
-  if (!process.env.GITHUB_TOKEN) {
+  // Resolver token: user-provided o environment
+  const { token, source } = resolveToken(userGithubToken, process.env.GITHUB_TOKEN || "");
+
+  // Si se usa env token, verificar que exista
+  if (source === "env" && !process.env.GITHUB_TOKEN) {
     throw new AppError(
       ErrorType.AUTH_FAILED,
       "La autenticación con GitHub falló: GITHUB_TOKEN no está configurado"
     );
   }
 
-  // Configuración del descargador desde variables de entorno
+  // Configuración del descargador con el token resuelto
   const config: DownloaderConfig = {
-    githubToken: process.env.GITHUB_TOKEN,
+    githubToken: token,
     maxFiles: 500,
     timeoutMs: 30000,
     allowedExtensions: ['.js', '.ts', '.jsx', '.tsx'],
@@ -97,7 +116,7 @@ async function handlePost(event: LambdaEvent): Promise<{ response: LambdaRespons
         tmpDir: downloadResult.tmpDir,
       });
 
-      // Paso 4: Construir y persistir registro
+      // Paso 4: Construir y persistir registro (NO incluir userGithubToken)
       const record: JobRecord = {
         jobId,
         repoUrl,
@@ -111,7 +130,7 @@ async function handlePost(event: LambdaEvent): Promise<{ response: LambdaRespons
 
       await saveResult(record);
 
-      // Paso 5: Retornar respuesta
+      // Paso 5: Retornar respuesta (NO incluir userGithubToken)
       return {
         response: buildResponse(200, {
           jobId,
@@ -146,6 +165,25 @@ async function handlePost(event: LambdaEvent): Promise<{ response: LambdaRespons
         // Best-effort: no lanzar si la persistencia del error falla
       }
     }
+
+    // Log error using safe logger
+    if (error instanceof AppError) {
+      logger.error(JSON.stringify({
+        level: "ERROR",
+        jobId,
+        errorType: error.type,
+        message: error.message,
+      }));
+    } else {
+      const unexpectedError = error instanceof Error ? error : new Error(String(error));
+      logger.error(JSON.stringify({
+        level: "ERROR",
+        jobId,
+        errorType: "INTERNAL_ERROR",
+        message: unexpectedError.message,
+      }));
+    }
+
     // Attach jobId to error for outer handler to use in logging/response
     (error as any).__jobId = jobId;
     throw error;
@@ -198,11 +236,26 @@ async function handleGet(event: LambdaEvent): Promise<LambdaResponse> {
 }
 
 /**
- * Handler principal de la Lambda. Rutea por método HTTP.
+ * Handler principal de la Lambda. Rutea por rawPath y método HTTP.
+ * - rawPath "/pr" + POST → PR creation (placeholder, task 32)
+ * - Otros rawPath (undefined, "/", etc.) → análisis/consulta por método HTTP
  * Captura errores globalmente y los mapea a respuestas HTTP JSON.
  */
 export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
   try {
+    // Route by rawPath first: "/pr" only accepts POST
+    if (event.rawPath === "/pr") {
+      const method = event.requestContext?.http?.method?.toUpperCase();
+      if (method !== "POST") {
+        throw new AppError(
+          ErrorType.METHOD_NOT_ALLOWED,
+          "Método no permitido"
+        );
+      }
+      return await handlePrCreation(event);
+    }
+
+    // Default: existing analysis/query flow routed by HTTP method
     const method = event.requestContext?.http?.method?.toUpperCase();
 
     switch (method) {

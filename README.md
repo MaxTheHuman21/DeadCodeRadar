@@ -2,9 +2,9 @@
 
 > Static analysis, sharpened by AI. Find dead code in your repo before it finds you.
 
-**[🚀 Try it live](TU_URL_AQUI)** · **[📹 Watch the demo](LINK_AL_VIDEO)**
+**[🚀 Try it live](https://d30fivs2ylbran.cloudfront.net/)** · **[📹 Watch the demo]()**
 
-![screenshot](ruta/a/tu/screenshot.png)
+![screenshot](image/DeadCodeRadar_home.png)
 
 ## What it does
 
@@ -34,8 +34,8 @@ dead code for you.
 
 ## Architecture
 
-[Aquí un diagrama simple — puedo generarte uno con el Visualizer si quieres, dime]
-
+**Diagram
+![diagrama](image/deadcore_radar_architecture.png)
 - **AWS Lambda** — serverless backend, Node.js/TypeScript
 - **Amazon Bedrock (Claude Sonnet)** — AI enrichment layer
 - **DynamoDB** — job results storage
@@ -66,4 +66,75 @@ refinement. [Opcional: menciona algo específico que te haya sorprendido de ese 
 
 ## Local setup
 
-[comandos de instalación local si alguien quiere correrlo]
+### Prerequisites
+- Node.js 20.x
+- AWS CLI configured with credentials that have permissions for Lambda, 
+  DynamoDB, IAM, and Bedrock
+- AWS CDK installed globally: `npm install -g aws-cdk`
+- A GitHub Personal Access Token (classic, `public_repo` scope is enough 
+  for analysis; `repo` scope needed if you want to test PR creation)
+- Access to Amazon Bedrock enabled in your AWS account/region for the 
+  Claude model used (`us.anthropic.claude-sonnet-4-6` inference profile)
+
+### Option A — Run the frontend only (points to our live backend)
+
+The fastest way to try the UI locally without deploying any AWS 
+infrastructure:
+
+\`\`\`bash
+git clone https://github.com/MaxTheHuman21/DeadCodeRadar.git
+cd DeadCodeRadar/frontend
+npm install
+
+# .env already points to our deployed backend by default
+npm run dev
+\`\`\`
+
+Open `http://localhost:5173` — the app will hit our live Lambda backend.
+
+### Option B — Full deploy (backend + frontend on your own AWS account)
+
+\`\`\`bash
+git clone https://github.com/MaxTheHuman21/DeadCodeRadar.git
+cd DeadCodeRadar
+
+# 1. Install backend dependencies
+npm install
+
+# 2. Bootstrap CDK (only needed once per AWS account/region)
+cdk bootstrap
+
+# 3. Set your GitHub token as an environment variable
+export GITHUB_TOKEN=your_github_personal_access_token
+
+# 4. Deploy the backend (Lambda, DynamoDB, Bedrock permissions)
+cdk deploy
+
+# Note the FunctionUrl output — you'll need it for the frontend
+
+# 5. Configure and run the frontend
+cd frontend
+npm install
+
+# Create a .env file with your deployed Function URL:
+echo "VITE_API_URL=<your-function-url-from-step-4>" > .env
+
+npm run dev       # local dev server
+# — or —
+npm run build     # production build, output in dist/
+\`\`\`
+
+### Running tests
+
+\`\`\`bash
+npx tsc --noEmit      # type check
+npx vitest --run      # unit + property-based tests
+cdk synth             # validate CloudFormation template
+\`\`\`
+
+### Environment variables reference
+
+| Variable | Required | Description |
+|---|---|---|
+| `GITHUB_TOKEN` | Yes (backend deploy) | GitHub PAT used as fallback for public repo analysis |
+| `VITE_API_URL` | Yes (frontend) | Backend Function URL (from CDK output) |

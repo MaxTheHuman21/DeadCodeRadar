@@ -2,7 +2,8 @@
 
 > Static analysis, sharpened by AI. Find dead code in your repo before it finds you.
 
-**[🚀 Try it live](https://d30fivs2ylbran.cloudfront.net/)** · **[📹 Watch the demo]()**
+**[Try it NOW!!!](https://d30fivs2ylbran.cloudfront.net/)** · **[📹 Watch the demo]()**
+
 
 ![screenshot](image/DeadCodeRadar_home.png)
 
@@ -35,7 +36,7 @@ dead code for you.
 ## Architecture
 
 **Diagram
-![diagrama](image/deadcore_radar_architecture.png)
+![diagrama](image/deadcode_radar_architecture.png)
 - **AWS Lambda** — serverless backend, Node.js/TypeScript
 - **Amazon Bedrock (Claude Sonnet)** — AI enrichment layer
 - **DynamoDB** — job results storage

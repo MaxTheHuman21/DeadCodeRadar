@@ -11,8 +11,8 @@ export function TopNav({
   onChange: (v: View) => void
 }) {
   const tabs: { id: View; label: string }[] = [
-    { id: 'landing', label: 'Home' },
-    { id: 'testing', label: 'Try it' },
+    { id: 'landing', label: 'Inicio' },
+    { id: 'testing', label: 'Probar' },
   ]
 
   return (

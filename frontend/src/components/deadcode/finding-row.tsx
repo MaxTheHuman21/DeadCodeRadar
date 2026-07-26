@@ -59,14 +59,14 @@ export function FindingRow({
           ) : (
             <p className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground italic">
               <ShieldQuestion className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{enriched ? 'No risk explanation available.' : 'Not enriched — run with AI enrichment for detailed explanations.'}</span>
+              <span>{enriched ? 'No hay explicación de riesgo disponible.' : 'Sin enriquecimiento — ejecuta con enriquecimiento IA para explicaciones detalladas.'}</span>
             </p>
           )}
 
           {finding.groupId && groupSize > 1 && (
             <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground">
               <Layers className="h-3.5 w-3.5" />
-              Grouped with {groupSize - 1} related finding{groupSize - 1 > 1 ? 's' : ''}
+              Agrupado con {groupSize - 1} hallazgo{groupSize - 1 > 1 ? 's' : ''} relacionado{groupSize - 1 > 1 ? 's' : ''}
             </div>
           )}
         </div>

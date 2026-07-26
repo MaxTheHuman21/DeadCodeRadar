@@ -59,7 +59,7 @@ export function Testing() {
 
     if (!GITHUB_RE.test(value)) {
       setStatus('error')
-      setErrorMessage('Enter a full repository URL in the form https://github.com/owner/repo — make sure it\'s public and points to a specific repository.')
+      setErrorMessage('Ingresa la URL completa del repositorio en la forma https://github.com/owner/repo — asegúrate de que sea público y apunte a un repositorio específico.')
       setResult(null)
       return
     }
@@ -105,17 +105,17 @@ export function Testing() {
         const errorText = await response.text().catch(() => '')
         throw new Error(
           response.status === 422
-            ? 'The repository URL is not valid or the repo is not accessible.'
+            ? 'La URL del repositorio no es válida o el repo no es accesible.'
             : response.status === 404
-            ? 'The analysis endpoint was not found. Please try again later.'
-            : `Server error (${response.status}): ${errorText || 'Unknown error'}`
+            ? 'No se encontró el endpoint de análisis. Intenta de nuevo más tarde.'
+            : `Error del servidor (${response.status}): ${errorText || 'Error desconocido'}`
         )
       }
 
       const data = await response.json()
 
       if (data.status === 'error') {
-        throw new Error(data.error || 'The analysis failed. Please try again with a different repository.')
+        throw new Error(data.error || 'El análisis falló. Intenta de nuevo con otro repositorio.')
       }
 
       const analysisResult: AnalysisResult = {
@@ -146,7 +146,7 @@ export function Testing() {
       setErrorMessage(
         err instanceof Error
           ? err.message
-          : 'An unexpected error occurred. Please try again.'
+          : 'Ocurrió un error inesperado. Intenta de nuevo.'
       )
     }
   }
@@ -157,7 +157,7 @@ export function Testing() {
     const timeout = setTimeout(() => {
       abortRef.current?.abort()
       setStatus('error')
-      setErrorMessage('The analysis is taking too long. The repository might be too large or the server is busy. Please try again later.')
+      setErrorMessage('El análisis está tardando demasiado. El repositorio puede ser muy grande o el servidor está ocupado. Intenta de nuevo más tarde.')
       timers.current.forEach(clearTimeout)
       timers.current = []
     }, FETCH_TIMEOUT_MS)
@@ -168,11 +168,11 @@ export function Testing() {
     <div className="mx-auto max-w-3xl px-5 pt-14 pb-24">
       <div className="text-center">
         <h1 className="text-balance font-display text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-          Analyze a repository
+          Analiza un repositorio
         </h1>
         <p className="mx-auto mt-3 max-w-md text-pretty text-sm leading-relaxed text-muted-foreground">
-          Paste a public GitHub repo URL and we&apos;ll surface its dead code with
-          confidence-ranked, AI-explained findings.
+          Pega la URL de un repo público de GitHub y encontraremos su código muerto con
+          hallazgos rankeados por confianza y explicados por IA.
         </p>
       </div>
 
@@ -210,24 +210,24 @@ export function Testing() {
               className="h-11 rounded-xl px-6"
             >
               <Search className="h-4 w-4" />
-              Analyze
+              Analizar
             </Button>
           </div>
 
           <details className="mt-4 text-sm">
             <summary className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
-              Add your GitHub token to enable PR creation (optional)
+              Agrega tu token de GitHub para habilitar la creación de PRs (opcional)
             </summary>
             <div className="mt-3 space-y-2">
               <p className="text-xs text-muted-foreground">
-                Providing a token with <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">repo</code> scope enables creating a PR that removes dead code.{' '}
+                Proporcionar un token con scope <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">repo</code> permite crear un PR que elimina el código muerto.{' '}
                 <a
                   href="https://github.com/settings/tokens/new?scopes=repo"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary underline underline-offset-2 hover:text-primary/80"
                 >
-                  Create a token →
+                  Crear un token →
                 </a>
               </p>
               <input
@@ -247,7 +247,7 @@ export function Testing() {
               onClick={() => setUrl(EXAMPLE)}
               className="mt-3 text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
-              Try an example:{' '}
+              Prueba un ejemplo:{' '}
               <span className="font-mono text-primary">{EXAMPLE}</span>
             </button>
           )}
@@ -271,13 +271,13 @@ export function Testing() {
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <FileSearch className="h-6 w-6" />
           </span>
-          <h3 className="mt-4 font-display text-base font-semibold text-foreground">No dead code found</h3>
+          <h3 className="mt-4 font-display text-base font-semibold text-foreground">No se encontró código muerto</h3>
           <p className="mt-2 max-w-sm text-pretty text-sm leading-relaxed text-muted-foreground">
-            We analyzed the repository but didn&apos;t find any dead code findings. The codebase looks clean!
+            Analizamos el repositorio pero no encontramos código muerto. ¡El codebase se ve limpio!
           </p>
           <Button variant="outline" size="sm" onClick={reset} className="mt-6 rounded-full">
             <ArrowLeft className="h-4 w-4" />
-            Analyze another repo
+            Analizar otro repo
           </Button>
         </div>
       )}
@@ -321,7 +321,7 @@ function LoadingState({ step }: { step: number }) {
           ))}
         </div>
         <p className="text-xs text-muted-foreground">
-          This may take a few minutes for large repositories...
+          Esto puede tomar unos minutos en repositorios grandes...
         </p>
       </div>
     </div>
@@ -342,13 +342,13 @@ function ErrorPanel({
       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
         <AlertCircle className="h-6 w-6" />
       </span>
-      <h3 className="mt-4 font-display text-base font-semibold text-foreground">Something went wrong</h3>
+      <h3 className="mt-4 font-display text-base font-semibold text-foreground">Algo salió mal</h3>
       <p className="mt-2 max-w-sm text-pretty text-sm leading-relaxed text-muted-foreground">
         {message}
       </p>
       <Button variant="outline" size="sm" onClick={onRetry} className="mt-6 rounded-full">
         <RefreshCw className="h-4 w-4" />
-        Retry
+        Reintentar
       </Button>
     </div>
   )
@@ -364,14 +364,14 @@ function Results({ result, onReset, githubToken }: { result: AnalysisResult; onR
       {/* Back button */}
       <Button variant="ghost" size="sm" onClick={onReset} className="self-start rounded-full -mb-2">
         <ArrowLeft className="h-4 w-4" />
-        Analyze another repo
+        Analizar otro repo
       </Button>
 
       {/* Summary bar */}
       <div className="flex flex-wrap items-center gap-x-8 gap-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <Stat value={result.filesAnalyzed.toLocaleString()} label="Files analyzed" />
+        <Stat value={result.filesAnalyzed.toLocaleString()} label="Archivos analizados" />
         <span className="hidden h-8 w-px bg-border sm:block" />
-        <Stat value={result.findings.length} label="Findings" />
+        <Stat value={result.findings.length} label="Hallazgos" />
         <span className="hidden h-8 w-px bg-border sm:block" />
         <div className="ml-auto flex items-center gap-2">
           <span
@@ -383,7 +383,7 @@ function Results({ result, onReset, githubToken }: { result: AnalysisResult; onR
             )}
           >
             <Sparkles className="h-3.5 w-3.5" />
-            {result.enriched ? 'AI-enriched' : 'Static analysis only'}
+            {result.enriched ? 'Enriquecido con IA' : 'Solo análisis estático'}
           </span>
         </div>
       </div>
@@ -402,10 +402,10 @@ function Results({ result, onReset, githubToken }: { result: AnalysisResult; onR
       <div>
         <div className="mb-3 flex items-center justify-between px-1">
           <h3 className="font-display text-sm font-semibold text-foreground">
-            Findings (<span className="font-mono">{result.findings.length}</span>)
+            Hallazgos (<span className="font-mono">{result.findings.length}</span>)
           </h3>
           <span className="font-mono text-xs text-muted-foreground">
-            sorted by confidence
+            ordenados por confianza
           </span>
         </div>
         <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card shadow-sm">

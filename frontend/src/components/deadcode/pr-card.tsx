@@ -71,7 +71,7 @@ export function PrCard({ pr, githubToken, jobId, apiUrl }: PrCardProps) {
           </span>
           <div>
             <div className="font-display text-xs font-medium uppercase tracking-wide text-primary">
-              AI-generated PR description
+              Descripción de PR generada por IA
             </div>
             <h3 className="mt-1 font-mono text-sm font-medium text-foreground">{pr.title}</h3>
           </div>
@@ -79,7 +79,7 @@ export function PrCard({ pr, githubToken, jobId, apiUrl }: PrCardProps) {
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={copy} className="shrink-0 rounded-full">
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            {copied ? 'Copied' : 'Copy'}
+            {copied ? 'Copiado' : 'Copiar'}
           </Button>
 
           {/* PR Creation Button */}
@@ -91,7 +91,7 @@ export function PrCard({ pr, githubToken, jobId, apiUrl }: PrCardProps) {
               className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3 py-1.5 text-xs font-medium text-success transition-colors hover:bg-success/20"
             >
               <Check className="h-3.5 w-3.5" />
-              PR Created
+              PR creado
               <ExternalLink className="h-3 w-3" />
             </a>
           ) : prStatus === 'loading' ? (
@@ -102,7 +102,7 @@ export function PrCard({ pr, githubToken, jobId, apiUrl }: PrCardProps) {
               className="shrink-0 rounded-full"
             >
               <Loader2 className="h-4 w-4 animate-spin" />
-              Creating...
+              Creando...
             </Button>
           ) : (
             <Button
@@ -111,10 +111,10 @@ export function PrCard({ pr, githubToken, jobId, apiUrl }: PrCardProps) {
               disabled={!canCreatePr}
               onClick={createPr}
               className="shrink-0 rounded-full"
-              title={!canCreatePr ? 'Add your GitHub token above to enable this' : undefined}
+              title={!canCreatePr ? 'Agrega tu token de GitHub arriba para habilitar esto' : undefined}
             >
               <GitPullRequest className="h-4 w-4" />
-              Create PR
+              Crear PR
             </Button>
           )}
         </div>
@@ -130,7 +130,7 @@ export function PrCard({ pr, githubToken, jobId, apiUrl }: PrCardProps) {
             onClick={createPr}
             className="text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/80"
           >
-            Retry
+            Reintentar
           </button>
         </div>
       )}
@@ -141,7 +141,7 @@ export function PrCard({ pr, githubToken, jobId, apiUrl }: PrCardProps) {
           onClick={() => setOpen((v) => !v)}
           className="flex w-full items-center justify-between py-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
         >
-          {open ? 'Hide details' : 'View details'}
+          {open ? 'Ocultar detalles' : 'Ver detalles'}
           <ChevronDown
             className={cn('h-4 w-4 transition-transform', open && 'rotate-180')}
           />

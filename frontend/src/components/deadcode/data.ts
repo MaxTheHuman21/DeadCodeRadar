@@ -28,9 +28,15 @@ export interface AnalysisResult {
 }
 
 export const TYPE_LABELS: Record<FindingType, string> = {
-  'unused-file': 'unused file',
-  'unused-export': 'unused export',
-  'unused-dependency': 'unused dependency',
+  'unused-file': 'archivo sin usar',
+  'unused-export': 'export sin usar',
+  'unused-dependency': 'dependencia sin usar',
+}
+
+export const CONFIDENCE_LABELS: Record<ConfidenceLevel, string> = {
+  high: 'Alta',
+  medium: 'Media',
+  low: 'Baja',
 }
 
 /** Sort priority: high > medium > low > null */
@@ -42,10 +48,10 @@ export function confidenceSortValue(score: ConfidenceLevel | null): number {
 }
 
 export const LOADING_STEPS = [
-  'Cloning repository...',
-  'Downloading files...',
-  'Building the dependency graph...',
-  'Running static analysis...',
-  'Enriching findings with AI...',
-  'Drafting your PR description...',
+  'Clonando repositorio...',
+  'Descargando archivos...',
+  'Construyendo el grafo de dependencias...',
+  'Ejecutando análisis estático...',
+  'Enriqueciendo hallazgos con IA...',
+  'Redactando la descripción del PR...',
 ]

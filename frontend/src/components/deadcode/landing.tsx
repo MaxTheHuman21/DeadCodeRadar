@@ -6,18 +6,18 @@ import { RadarSweep } from './radar-sweep'
 const STEPS = [
   {
     icon: Link2,
-    title: 'Paste a repo URL',
-    body: 'Drop in any public GitHub repository. No install, no config, no CI wiring.',
+    title: 'Pega la URL de un repo',
+    body: 'Ingresa cualquier repositorio público de GitHub. Sin instalar, sin configurar, sin integración CI.',
   },
   {
     icon: ScanSearch,
-    title: 'We analyze it',
-    body: 'Static analysis builds the dependency graph, then AI reviews each candidate for context.',
+    title: 'Lo analizamos',
+    body: 'El análisis estático construye el grafo de dependencias, luego la IA revisa cada candidato en contexto.',
   },
   {
     icon: ClipboardList,
-    title: 'Get prioritized findings',
-    body: 'Confidence-ranked results plus a ready-to-paste PR description you can ship today.',
+    title: 'Obtén hallazgos priorizados',
+    body: 'Resultados ordenados por confianza más una descripción de PR lista para copiar y enviar hoy.',
   },
 ]
 
@@ -30,28 +30,28 @@ export function Landing({ onTryIt }: { onTryIt: () => void }) {
         <div className="relative z-10 flex flex-col items-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            Static analysis, sharpened by AI
+            Análisis estático, potenciado por IA
           </div>
 
           <h1 className="max-w-3xl text-balance font-display text-4xl font-semibold leading-[1.1] tracking-tight text-foreground md:text-6xl">
-            Find dead code in your repo before it finds you
+            Encuentra código muerto en tu repo antes de que te encuentre a ti
           </h1>
 
           <p className="mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground md:text-lg">
-            DeadCode Radar scans your GitHub repository for unused files, exports, and
-            dependencies — then explains what&apos;s safe to remove and why.
+            DeadCode Radar escanea tu repositorio de GitHub en busca de archivos, exports y
+            dependencias sin usar — y te explica qué es seguro eliminar y por qué.
           </p>
 
           <div className="mt-8 flex flex-col items-center gap-4">
             <Button size="lg" onClick={onTryIt} className="rounded-full px-6 text-sm">
-              Try it now
+              Probar ahora
               <ArrowRight className="h-4 w-4" />
             </Button>
 
             {/* Built with badge */}
             <div className="mt-2 inline-flex items-center gap-2.5 rounded-full border border-border bg-card px-3.5 py-2 text-muted-foreground">
               <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">
-                Powered by
+                Desarrollado con
               </span>
               <MaskIcon src="/logos/aws.svg" label="AWS" className="h-4 w-6 text-foreground/70" />
               <span className="text-border">·</span>
@@ -69,7 +69,7 @@ export function Landing({ onTryIt }: { onTryIt: () => void }) {
       {/* How it works */}
       <section className="border-t border-border py-16">
         <h2 className="text-center font-display text-sm font-semibold uppercase tracking-wide text-primary">
-          How it works
+          Cómo funciona
         </h2>
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           {STEPS.map((step, i) => (
@@ -82,7 +82,7 @@ export function Landing({ onTryIt }: { onTryIt: () => void }) {
                   <step.icon className="h-5 w-5" />
                 </span>
                 <span className="text-xs font-semibold text-muted-foreground">
-                  Step {i + 1}
+                  Paso {i + 1}
                 </span>
               </div>
               <h3 className="mt-4 font-display text-base font-semibold text-foreground">{step.title}</h3>
@@ -98,16 +98,17 @@ export function Landing({ onTryIt }: { onTryIt: () => void }) {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
               <Sparkles className="h-3.5 w-3.5" />
-              Why the AI matters
+              Por qué importa la IA
             </div>
             <h2 className="mt-5 text-balance font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-              It doesn&apos;t just flag dead code. It tells you why.
+              No solo marca código muerto. Te dice por qué.
             </h2>
             <p className="mt-4 text-pretty text-sm leading-relaxed text-muted-foreground md:text-base">
-              Pure static analysis is noisy — it trips over dynamic imports, framework
-              entrypoints, and re-exported public APIs. DeadCode Radar enriches every finding
-              with a plain-English risk explanation and a confidence score, so the false
-              positives sink to the bottom and the safe wins rise to the top.
+              El análisis estático puro es ruidoso — se confunde con imports dinámicos,
+              entrypoints de frameworks y APIs públicas re-exportadas. DeadCode Radar enriquece
+              cada hallazgo con una explicación de riesgo en lenguaje claro y un puntaje de
+              confianza, para que los falsos positivos queden al fondo y las victorias seguras
+              suban al tope.
             </p>
           </div>
 
@@ -124,7 +125,7 @@ export function Landing({ onTryIt }: { onTryIt: () => void }) {
             </p>
             <div className="mt-4 flex items-center gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
-              A static-only tool would have told you to delete this.
+              Una herramienta solo estática te habría dicho que borres esto.
             </div>
           </div>
         </div>
@@ -134,12 +135,13 @@ export function Landing({ onTryIt }: { onTryIt: () => void }) {
       <section className="border-t border-border py-16">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-balance font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-            By developers, for developers
+            Por desarrolladores, para desarrolladores
           </h2>
           <p className="mt-4 text-pretty text-sm leading-relaxed text-muted-foreground md:text-base">
-            This tool exists because manually hunting dead code is tedious, error-prone work
-            nobody enjoys. We built it during a hackathon to scratch our own itch — a fast,
-            honest way to keep a codebase lean without babysitting a linter&apos;s false alarms.
+            Esta herramienta existe porque buscar código muerto manualmente es tedioso y
+            propenso a errores. La construimos en un hackathon para resolver nuestra propia
+            necesidad — una forma rápida y honesta de mantener un codebase limpio sin vigilar
+            las falsas alarmas de un linter.
           </p>
         </div>
       </section>
@@ -154,11 +156,11 @@ export function Landing({ onTryIt }: { onTryIt: () => void }) {
             className="inline-flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-primary"
           >
             <MaskIcon src="/logos/github.svg" label="GitHub" className="h-4 w-4" />
-            View source on GitHub
+            Ver código fuente en GitHub
           </a>
 
           <div className="flex items-center gap-3 text-muted-foreground">
-            <span className="text-xs text-muted-foreground/70">Running on</span>
+            <span className="text-xs text-muted-foreground/70">Ejecutándose en</span>
             <img
               src="/logos/aws-lambda.svg"
               alt="AWS Lambda"
@@ -180,7 +182,7 @@ export function Landing({ onTryIt }: { onTryIt: () => void }) {
           </div>
 
           <p className="text-xs text-muted-foreground/60">
-            DeadCode Radar — a hackathon project. Not affiliated with AWS, Kiro, or Anthropic.
+            DeadCode Radar — un proyecto de hackathon. Sin afiliación con AWS, Kiro o Anthropic.
           </p>
         </div>
       </footer>

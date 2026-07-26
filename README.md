@@ -1,71 +1,69 @@
 # 🎯 DeadCode Radar
 
-> Static analysis, sharpened by AI. Find dead code in your repo before it finds you.
+> Análisis estático, afilado por IA. Encuentra código muerto en tu repo antes de que él te encuentre.
 
-**[Try it NOW!!!](https://d30fivs2ylbran.cloudfront.net/)** · **[📹 Watch the demo]()**
+**[🚀 Pruébalo en vivo](https://d30fivs2ylbran.cloudfront.net)** · **[📹 Ver la demo](LINK_AL_VIDEO)**
 
+![Vista principal de DeadCode Radar](images/DeadCodeRadar_home.png)
 
-![screenshot](image/DeadCodeRadar_home.png)
+## Qué hace
 
-## What it does
+DeadCode Radar analiza cualquier repositorio público de GitHub en busca de archivos, exports y 
+dependencias sin usar — y usa IA para explicar *por qué* cada hallazgo es (o no) un candidato 
+seguro de eliminación, detectando falsos positivos que las herramientas de análisis estático 
+puro no ven.
 
-DeadCode Radar scans any public GitHub repository for unused files, exports, and 
-dependencies — then uses AI to explain *why* each finding is a safe (or risky) removal 
-candidate, catching false positives that pure static analysis tools miss.
+## Por qué es diferente
 
-## Why it's different
+El análisis estático puro es ruidoso: marca handlers de rutas de Next.js, módulos cargados 
+dinámicamente, y APIs re-exportadas como "muertos" cuando no lo son. DeadCode Radar enriquece 
+cada hallazgo con un nivel de confianza y una explicación de riesgo en lenguaje claro — y, para 
+los casos donde realmente tiene confianza, puede abrir un Pull Request real que elimina el 
+código muerto por ti.
 
-Static analysis alone is noisy: it flags Next.js route handlers, dynamically-loaded 
-modules, and re-exported APIs as "dead" when they're not. DeadCode Radar enriches every 
-finding with a confidence score and a plain-English risk explanation — then, for the 
-cases it's genuinely confident about, it can open a real Pull Request that removes the 
-dead code for you.
+## Cómo funciona
 
-## How it works
+1. **Pega la URL de un repo** — repositorios públicos de GitHub, JS/TypeScript
+2. **Análisis estático** (knip/ts-prune) genera la lista cruda de archivos, exports y 
+   dependencias sin usar
+3. **Amazon Bedrock (Claude)** lee el contexto real de cada archivo, asigna un nivel de 
+   confianza (alto/medio/bajo), agrupa hallazgos relacionados, y redacta una descripción de PR
+4. **Crea un PR real** — con tu propio token de GitHub, DeadCode Radar abre un Pull Request 
+   que elimina solo el código muerto de alta confianza y sin ambigüedad, dejando lo incierto 
+   para revisión manual
 
-1. **Paste a repo URL** — public GitHub repos, JS/TypeScript
-2. **Static analysis** (knip/ts-prune) builds the raw list of unused files, exports, 
-   and dependencies
-3. **Amazon Bedrock (Claude)** reads the actual file context around each finding, 
-   assigns a confidence score (high/medium/low), groups related findings, and drafts 
-   a PR description
-4. **Create a real PR** — with your own GitHub token, DeadCode Radar opens a Pull 
-   Request that removes only the high-confidence, unambiguous dead code — leaving 
-   anything uncertain for manual review
+## Arquitectura
+![Diagrama de arquitectura](images/deadcode_radar_architecture.png)
 
-## Architecture
+- **AWS Lambda** — backend serverless, Node.js/TypeScript
+- **Amazon Bedrock (Claude Sonnet)** — capa de enriquecimiento con IA
+- **DynamoDB** — almacenamiento de resultados
+- **S3 + CloudFront** — hosting del frontend
+- **GitHub API (Octokit)** — descarga de repos + creación de PR
 
-**Diagram
-![diagrama](image/deadcode_radar_architecture.png)
-- **AWS Lambda** — serverless backend, Node.js/TypeScript
-- **Amazon Bedrock (Claude Sonnet)** — AI enrichment layer
-- **DynamoDB** — job results storage
-- **S3** — frontend hosting
-- **GitHub API (Octokit)** — repo download + PR creation
+## Construido con Kiro
 
-## Built with Kiro
+Todo este proyecto se construyó usando el flujo spec-driven de Kiro (requirements → design → 
+tasks) a lo largo de dos días de desarrollo, más Claude Code para depuración iterativa y 
+refinamiento de UI.
 
-This entire project was built using Kiro's spec-driven workflow (requirements → design → 
-tasks) across two development days, plus Claude Code for iterative debugging and UI 
-refinement. [Opcional: menciona algo específico que te haya sorprendido de ese flujo]
+## Limitaciones conocidas
 
-## Known limitations
-
-- `unused-dependency` detection requires the analyzed repo to have installed 
-  `node_modules` for knip to resolve properly — not currently supported for remote 
-  repos analyzed without a full install step
-- PR creation confidence scores are AI-generated and can vary slightly between runs 
-  on the same repo (LLM non-determinism) — the system is intentionally conservative: 
-  when in doubt, it doesn't touch the file
-- Currently supports JavaScript/TypeScript only
+- La detección de `unused-dependency` requiere que el repo analizado tenga `node_modules` 
+  instalado para que knip pueda resolverlo correctamente — actualmente no soportado para 
+  repos remotos analizados sin un paso completo de instalación
+- Los niveles de confianza para la creación de PR son generados por IA y pueden variar 
+  ligeramente entre corridas sobre el mismo repo (no-determinismo del LLM) — el sistema es 
+  intencionalmente conservador: ante la duda, no toca el archivo
+- Actualmente solo soporta JavaScript/TypeScript
 
 ## Roadmap
 
-- GitHub OAuth login (vs. manual PAT entry)
-- Multi-language support (Python, Go)
-- Fork-based PR creation for repos you don't own
+- Login con GitHub OAuth (en vez de entrada manual de token)
+- Soporte multi-lenguaje (Python, Go)
+- Creación de PR vía fork para repos que no son tuyos
 
-## Local setup
+## Instalación local
 
 ### Prerequisites
 - Node.js 20.x

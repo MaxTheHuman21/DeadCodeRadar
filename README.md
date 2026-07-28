@@ -65,75 +65,75 @@ refinamiento de UI.
 
 ## Instalación local
 
-### Prerequisites
+### Requisitos previos
 - Node.js 20.x
-- AWS CLI configured with credentials that have permissions for Lambda, 
-  DynamoDB, IAM, and Bedrock
-- AWS CDK installed globally: `npm install -g aws-cdk`
-- A GitHub Personal Access Token (classic, `public_repo` scope is enough 
-  for analysis; `repo` scope needed if you want to test PR creation)
-- Access to Amazon Bedrock enabled in your AWS account/region for the 
-  Claude model used (`us.anthropic.claude-sonnet-4-6` inference profile)
+- AWS CLI configurado con credenciales que tengan permisos para Lambda, 
+  DynamoDB, IAM, y Bedrock
+- AWS CDK instalado globalmente: `npm install -g aws-cdk`
+- Un Personal Access Token de GitHub (classic; el scope `public_repo` alcanza 
+  para el análisis; se necesita scope `repo` si quieres probar la creación de PR)
+- Acceso a Amazon Bedrock habilitado en tu cuenta/región de AWS para el 
+  modelo Claude usado (inference profile `us.anthropic.claude-sonnet-4-6`)
 
-### Option A — Run the frontend only (points to our live backend)
+### Opción A — Correr solo el frontend (apunta a nuestro backend en producción)
 
-The fastest way to try the UI locally without deploying any AWS 
-infrastructure:
+La forma más rápida de probar la UI en local sin desplegar ninguna 
+infraestructura de AWS:
 
 \`\`\`bash
 git clone https://github.com/MaxTheHuman21/DeadCodeRadar.git
 cd DeadCodeRadar/frontend
 npm install
 
-# .env already points to our deployed backend by default
+# El .env ya apunta a nuestro backend desplegado por defecto
 npm run dev
 \`\`\`
 
-Open `http://localhost:5173` — the app will hit our live Lambda backend.
+Abre `http://localhost:5173` — la app va a consumir nuestro backend real en Lambda.
 
-### Option B — Full deploy (backend + frontend on your own AWS account)
+### Opción B — Deploy completo (backend + frontend en tu propia cuenta de AWS)
 
 \`\`\`bash
 git clone https://github.com/MaxTheHuman21/DeadCodeRadar.git
 cd DeadCodeRadar
 
-# 1. Install backend dependencies
+# 1. Instala las dependencias del backend
 npm install
 
-# 2. Bootstrap CDK (only needed once per AWS account/region)
+# 2. Bootstrap de CDK (solo la primera vez por cuenta/región de AWS)
 cdk bootstrap
 
-# 3. Set your GitHub token as an environment variable
-export GITHUB_TOKEN=your_github_personal_access_token
+# 3. Configura tu token de GitHub como variable de entorno
+export GITHUB_TOKEN=tu_personal_access_token
 
-# 4. Deploy the backend (Lambda, DynamoDB, Bedrock permissions)
+# 4. Despliega el backend (Lambda, DynamoDB, permisos de Bedrock)
 cdk deploy
 
-# Note the FunctionUrl output — you'll need it for the frontend
+# Anota el output FunctionUrl — lo vas a necesitar para el frontend
 
-# 5. Configure and run the frontend
+# 5. Configura y corre el frontend
 cd frontend
 npm install
 
-# Create a .env file with your deployed Function URL:
-echo "VITE_API_URL=<your-function-url-from-step-4>" > .env
+# Crea un archivo .env con tu Function URL desplegada:
+echo "VITE_API_URL=<tu-function-url-del-paso-4>" > .env
 
-npm run dev       # local dev server
-# — or —
-npm run build     # production build, output in dist/
+npm run dev       # servidor de desarrollo local
+# — o —
+npm run build     # build de producción, output en dist/
 \`\`\`
 
-### Running tests
+### Correr los tests
 
 \`\`\`bash
-npx tsc --noEmit      # type check
-npx vitest --run      # unit + property-based tests
-cdk synth             # validate CloudFormation template
+npx tsc --noEmit      # chequeo de tipos
+npx vitest --run      # tests unitarios + property-based
+cdk synth             # valida el template de CloudFormation
 \`\`\`
 
-### Environment variables reference
+### Referencia de variables de entorno
 
-| Variable | Required | Description |
+| Variable | Requerida | Descripción |
 |---|---|---|
-| `GITHUB_TOKEN` | Yes (backend deploy) | GitHub PAT used as fallback for public repo analysis |
-| `VITE_API_URL` | Yes (frontend) | Backend Function URL (from CDK output) |
+| `GITHUB_TOKEN` | Sí (deploy del backend) | PAT de GitHub usado como fallback para análisis de repos públicos |
+| `VITE_API_URL` | Sí (frontend) | Function URL del backend (del output de CDK) |
